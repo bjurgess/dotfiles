@@ -28,5 +28,8 @@ bash "$DOTFILES_DIR/tmux/install.sh"
 info "Running Ghostty setup..."
 bash "$DOTFILES_DIR/ghostty/install.sh"
 
+info "Running Neovim setup..."
+bash "$DOTFILES_DIR/nvim/install.sh"
+
 ok "Dotfiles install complete."
 info "Restart your terminal (or open a new Ghostty window) and start tmux to see everything in effect."
