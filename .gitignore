@@ -1,0 +1,3 @@
+# tmux plugins are vendored here by TPM (via tmux/install.sh) — reproducible,
+# not source we own, so don't commit them.
+tmux/tmux/plugins/
