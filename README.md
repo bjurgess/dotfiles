@@ -26,9 +26,12 @@ It:
 2. Installs `stow` if missing.
 3. Runs `tmux/install.sh`.
 4. Runs `ghostty/install.sh`.
+5. Runs `nvim/install.sh`.
+6. Runs `zsh/install.sh`.
 
 Each tool's script can also be run standalone (`./tmux/install.sh`,
-`./ghostty/install.sh`) if you only need to (re)set up that one thing.
+`./ghostty/install.sh`, `./nvim/install.sh`, `./zsh/install.sh`) if you only
+need to (re)set up that one thing.
 
 ## Layout
 
@@ -45,13 +48,23 @@ dotfiles/
 │       ├── tmux.conf
 │       ├── cheatsheet.md
 │       └── tmux-sessionizer
-└── ghostty/
+├── ghostty/
+│   ├── install.sh
+│   ├── .stow-local-ignore
+│   └── ghostty/            # stowed as a whole -> ~/.config/ghostty
+│       ├── config
+│       └── themes/
+└── zsh/
     ├── install.sh
     ├── .stow-local-ignore
-    └── ghostty/            # stowed as a whole -> ~/.config/ghostty
-        ├── config
-        └── themes/
+    ├── .zshrc                # -> ~/.zshrc (stow --target="$HOME")
+    └── .p10k.zsh             # -> ~/.p10k.zsh
 ```
+
+`zsh/`, like `nvim/`, overrides stow's default target: `.zshrc` and
+`.p10k.zsh` belong directly at `$HOME`, not `~/.config`, so its files sit
+flat in the package directory (no nested `zsh/zsh/`) and its `install.sh`
+runs `stow --target="$HOME"`.
 
 Packages are managed with [GNU Stow](https://www.gnu.org/software/stow/).
 `.stowrc` sets the default target to `~/.config`. Stow mirrors a package
@@ -85,13 +98,30 @@ in the way. `tmux/install.sh` removes a stray one if it finds it.
 - `config` — font size, window behavior, keybinds.
 - `themes/catppuccin-mocha.conf` — color theme, referenced from `config`.
 
+## Zsh
+
+- Shell framework is [oh-my-zsh](https://github.com/ohmyzsh/ohmyzsh), themed
+  with [Powerlevel10k](https://github.com/romkatv/powerlevel10k).
+- Enabled plugins: `git`, `fzf`, `macos`.
+- `~/.oh-my-zsh` and the Powerlevel10k theme are cloned by `zsh/install.sh`
+  (gitignored — reproducible, not committed), the same way TPM is handled
+  for tmux.
+- After the first install, run `p10k configure` in a new shell to tune the
+  prompt interactively; it regenerates `~/.p10k.zsh`. Copy that back into
+  `zsh/.p10k.zsh` and commit it if you want the tuned prompt to follow you
+  across machines.
+- Icons need a Nerd Font — `zsh/install.sh` reminds you to install the
+  `font-meslo-lg-nerd-font` cask (declared in `Brewfile`) and set it as your
+  terminal's font.
+
 ## Brewfile
 
 Every CLI tool this setup depends on (`fzf`, `bat`, `git-delta`, `fd`,
-`ctags`, `tmux`, `stow`, etc.) and the `ghostty` cask are declared in
-`Brewfile`. Add new tools there rather than installing ad hoc — `install.sh`
-runs `brew bundle` on every invocation, so anything listed there is
-guaranteed present on any machine that runs the installer.
+`ctags`, `tmux`, `stow`, etc.), the `ghostty` cask, and the
+`font-meslo-lg-nerd-font` cask are declared in `Brewfile`. Add new tools
+there rather than installing ad hoc — `install.sh` runs `brew bundle` on
+every invocation, so anything listed there is guaranteed present on any
+machine that runs the installer.
 
 ## Adding a new tool's config
 

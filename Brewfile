@@ -32,3 +32,5 @@ brew "stow"
 
 # Terminal emulator
 cask "ghostty"
+# Nerd Font patched with icons, used by the Powerlevel10k zsh prompt
+cask "font-meslo-lg-nerd-font"
