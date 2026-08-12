@@ -31,6 +31,15 @@ bash "$DOTFILES_DIR/ghostty/install.sh"
 info "Running Neovim setup..."
 bash "$DOTFILES_DIR/nvim/install.sh"
 
+info "Running direnv setup..."
+bash "$DOTFILES_DIR/direnv/install.sh"
+
+info "Running mise setup..."
+bash "$DOTFILES_DIR/mise/install.sh"
+
+info "Running Bazelisk setup..."
+bash "$DOTFILES_DIR/bazelisk/install.sh"
+
 info "Running zsh setup..."
 bash "$DOTFILES_DIR/zsh/install.sh"
 
