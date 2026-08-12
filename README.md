@@ -62,10 +62,14 @@ dotfiles/
     ├── .stow-local-ignore
     ├── .zshrc                # -> ~/.zshrc (stow --target="$HOME")
     ├── .zshenv               # -> ~/.zshenv (stow --target="$HOME")
+    ├── .zprofile             # -> ~/.zprofile (stow --target="$HOME")
     ├── .p10k.zsh             # -> ~/.p10k.zsh
     └── .config/zsh/
-        ├── zshrc.d/README.md    # -> ~/.config/zsh/zshrc.d/README.md
-        └── zshenv.d/README.md   # -> ~/.config/zsh/zshenv.d/README.md
+        ├── zshrc.d/README.md         # -> ~/.config/zsh/zshrc.d/README.md
+        ├── zshenv.d/README.md        # -> ~/.config/zsh/zshenv.d/README.md
+        └── zprofile.d/
+            ├── README.md              # -> ~/.config/zsh/zprofile.d/README.md
+            └── homebrew.zsh           # -> ~/.config/zsh/zprofile.d/homebrew.zsh
 ```
 
 `zsh/`, like `nvim/`, overrides stow's default target: `.zshrc` and
@@ -88,13 +92,13 @@ in the way. `tmux/install.sh` removes a stray one if it finds it.
 
 `.stowrc` also sets `--no-folding`, so stow always symlinks individual
 files rather than folding a whole directory into one symlink. This matters
-because `~/.config/zsh/{zshrc.d,zshenv.d}` are populated by more than one
-package (`zsh/` plus any tool contributing a fragment, e.g. `tmux/`) —
-without `--no-folding`, whichever package stowed first would symlink the
-entire directory to itself and the next package's stow would conflict.
-`ensure_zsh_fragment_dirs` (`lib/install-common.sh`) additionally
-pre-creates those two directories as real directories before either
-package stows, since a package can be run standalone in either order.
+because `~/.config/zsh/{zshrc.d,zshenv.d,zprofile.d}` are populated by more
+than one package (`zsh/` plus any tool contributing a fragment, e.g.
+`tmux/`) — without `--no-folding`, whichever package stowed first would
+symlink the entire directory to itself and the next package's stow would
+conflict. `ensure_zsh_fragment_dirs` (`lib/install-common.sh`) additionally
+pre-creates those directories as real directories before any package
+stows, since a package can be run standalone in any order.
 
 ## tmux
 
@@ -131,24 +135,27 @@ package stows, since a package can be run standalone in either order.
   `font-meslo-lg-nerd-font` cask (declared in `Brewfile`) and set it as your
   terminal's font.
 
-### Per-tool `.zshrc`/`.zshenv` additions
+### Per-tool `.zshrc`/`.zshenv`/`.zprofile` additions
 
 Any tool's dotfiles package can contribute shell config without touching the
 `zsh/` package itself, by dropping a `*.zsh` file into:
 
-- `~/.config/zsh/zshrc.d/` — sourced by `~/.zshrc` (interactive-only:
-  aliases, completions, prompt tweaks; runs after oh-my-zsh loads).
+- `~/.config/zsh/zprofile.d/` — sourced by `~/.zprofile` (once per login
+  shell, before `.zshrc`: PATH/env bootstrapping like `brew shellenv`).
 - `~/.config/zsh/zshenv.d/` — sourced by `~/.zshenv` (every shell,
   including scripts: `PATH` entries, exported env vars only).
+- `~/.config/zsh/zshrc.d/` — sourced by `~/.zshrc` (interactive-only:
+  aliases, completions, prompt tweaks; runs after oh-my-zsh loads).
 
 Fragments are sourced in filename order. A package contributes one by
-placing a file at `dotfiles/<tool>/zsh/zshrc.d/<tool>.zsh` (or
-`zshenv.d/`) — stow's default `~/.config` target lands it at
-`~/.config/zsh/zshrc.d/<tool>.zsh` once that tool's `install.sh` stows its
-package, no extra wiring needed. `tmux/zsh/zshenv.d/tmux.zsh` (adds
-`~/.local/bin` to `PATH`) is a working example. See
-`zsh/.config/zsh/zshrc.d/README.md` and `.../zshenv.d/README.md` for the
-full convention.
+placing a file at `dotfiles/<tool>/zsh/zprofile.d/<tool>.zsh` (or
+`zshrc.d/`/`zshenv.d/`) — stow's default `~/.config` target lands it at
+`~/.config/zsh/zprofile.d/<tool>.zsh` once that tool's `install.sh` stows
+its package, no extra wiring needed. `tmux/zsh/zshenv.d/tmux.zsh` (adds
+`~/.local/bin` to `PATH`) and `zsh/.config/zsh/zprofile.d/homebrew.zsh`
+(the `zsh` package's own `eval "$(brew shellenv)"`, since Homebrew is a
+base dependency rather than its own tool package) are working examples.
+See the `README.md` inside each `*.d/` directory for the full convention.
 
 ## Brewfile
 
@@ -170,6 +177,7 @@ machine that runs the installer.
 4. Call the new script from the top-level `install.sh`.
 5. Document non-obvious keybindings or setup steps in a cheatsheet alongside
    the config, the way `tmux/tmux/cheatsheet.md` does.
-6. If the tool needs shell integration, add a `<tool>/zsh/zshrc.d/<tool>.zsh`
-   or `<tool>/zsh/zshenv.d/<tool>.zsh` fragment instead of editing `zsh/` —
-   see [Per-tool `.zshrc`/`.zshenv` additions](#per-tool-zshrczshenv-additions).
+6. If the tool needs shell integration, add a
+   `<tool>/zsh/{zprofile.d,zshenv.d,zshrc.d}/<tool>.zsh` fragment instead of
+   editing `zsh/` — see
+   [Per-tool `.zshrc`/`.zshenv`/`.zprofile` additions](#per-tool-zshrczshenvzprofile-additions).
