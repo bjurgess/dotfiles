@@ -43,6 +43,18 @@ require_brew() {
 	ok "Homebrew installed"
 }
 
+# ensure_zsh_fragment_dirs
+# Creates ~/.config/zsh/{zshrc.d,zshenv.d} as real directories up front, if
+# they don't already exist. Multiple packages (zsh/ plus any tool
+# contributing a fragment, e.g. tmux/) place individual files under these
+# same two directories; without this, GNU Stow's tree-folding would symlink
+# the *whole* ~/.config/zsh dir to whichever package stows it first, and the
+# next package's stow would then conflict trying to add a file inside it.
+# Call this before stowing any package that touches ~/.config/zsh.
+ensure_zsh_fragment_dirs() {
+	mkdir -p "$HOME/.config/zsh/zshrc.d" "$HOME/.config/zsh/zshenv.d"
+}
+
 # backup_if_conflict <path>
 # If <path> exists and is a real file/dir (not already a symlink), move it
 # aside so stow (or a plain ln) can safely create its symlink in its place.

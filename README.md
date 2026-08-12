@@ -45,10 +45,12 @@ dotfiles/
 ├── tmux/
 │   ├── install.sh        # tmux-specific setup (not stowed)
 │   ├── .stow-local-ignore # excludes install.sh from being stowed
-│   └── tmux/              # stowed as a whole -> ~/.config/tmux
-│       ├── tmux.conf
-│       ├── cheatsheet.md
-│       └── tmux-sessionizer
+│   ├── tmux/              # stowed as a whole -> ~/.config/tmux
+│   │   ├── tmux.conf
+│   │   ├── cheatsheet.md
+│   │   └── tmux-sessionizer
+│   └── zsh/zshenv.d/
+│       └── tmux.zsh        # -> ~/.config/zsh/zshenv.d/tmux.zsh
 ├── ghostty/
 │   ├── install.sh
 │   ├── .stow-local-ignore
@@ -59,7 +61,11 @@ dotfiles/
     ├── install.sh
     ├── .stow-local-ignore
     ├── .zshrc                # -> ~/.zshrc (stow --target="$HOME")
-    └── .p10k.zsh             # -> ~/.p10k.zsh
+    ├── .zshenv               # -> ~/.zshenv (stow --target="$HOME")
+    ├── .p10k.zsh             # -> ~/.p10k.zsh
+    └── .config/zsh/
+        ├── zshrc.d/README.md    # -> ~/.config/zsh/zshrc.d/README.md
+        └── zshenv.d/README.md   # -> ~/.config/zsh/zshenv.d/README.md
 ```
 
 `zsh/`, like `nvim/`, overrides stow's default target: `.zshrc` and
@@ -79,6 +85,16 @@ symlink it into `~/.config`.
 `~/.tmux.conf` must **not** exist on the machine — tmux only falls back to
 `~/.config/tmux/tmux.conf` (the stowed file) when there's no `~/.tmux.conf`
 in the way. `tmux/install.sh` removes a stray one if it finds it.
+
+`.stowrc` also sets `--no-folding`, so stow always symlinks individual
+files rather than folding a whole directory into one symlink. This matters
+because `~/.config/zsh/{zshrc.d,zshenv.d}` are populated by more than one
+package (`zsh/` plus any tool contributing a fragment, e.g. `tmux/`) —
+without `--no-folding`, whichever package stowed first would symlink the
+entire directory to itself and the next package's stow would conflict.
+`ensure_zsh_fragment_dirs` (`lib/install-common.sh`) additionally
+pre-creates those two directories as real directories before either
+package stows, since a package can be run standalone in either order.
 
 ## tmux
 
@@ -115,6 +131,25 @@ in the way. `tmux/install.sh` removes a stray one if it finds it.
   `font-meslo-lg-nerd-font` cask (declared in `Brewfile`) and set it as your
   terminal's font.
 
+### Per-tool `.zshrc`/`.zshenv` additions
+
+Any tool's dotfiles package can contribute shell config without touching the
+`zsh/` package itself, by dropping a `*.zsh` file into:
+
+- `~/.config/zsh/zshrc.d/` — sourced by `~/.zshrc` (interactive-only:
+  aliases, completions, prompt tweaks; runs after oh-my-zsh loads).
+- `~/.config/zsh/zshenv.d/` — sourced by `~/.zshenv` (every shell,
+  including scripts: `PATH` entries, exported env vars only).
+
+Fragments are sourced in filename order. A package contributes one by
+placing a file at `dotfiles/<tool>/zsh/zshrc.d/<tool>.zsh` (or
+`zshenv.d/`) — stow's default `~/.config` target lands it at
+`~/.config/zsh/zshrc.d/<tool>.zsh` once that tool's `install.sh` stows its
+package, no extra wiring needed. `tmux/zsh/zshenv.d/tmux.zsh` (adds
+`~/.local/bin` to `PATH`) is a working example. See
+`zsh/.config/zsh/zshrc.d/README.md` and `.../zshenv.d/README.md` for the
+full convention.
+
 ## Brewfile
 
 Every CLI tool this setup depends on (`fzf`, `bat`, `git-delta`, `fd`,
@@ -135,3 +170,6 @@ machine that runs the installer.
 4. Call the new script from the top-level `install.sh`.
 5. Document non-obvious keybindings or setup steps in a cheatsheet alongside
    the config, the way `tmux/tmux/cheatsheet.md` does.
+6. If the tool needs shell integration, add a `<tool>/zsh/zshrc.d/<tool>.zsh`
+   or `<tool>/zsh/zshenv.d/<tool>.zsh` fragment instead of editing `zsh/` —
+   see [Per-tool `.zshrc`/`.zshenv` additions](#per-tool-zshrczshenv-additions).

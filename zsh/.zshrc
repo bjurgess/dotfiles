@@ -13,5 +13,13 @@ plugins=(git fzf macos)
 
 source "$ZSH/oh-my-zsh.sh"
 
+# Source interactive-shell additions any tool's dotfiles package drops into
+# ~/.config/zsh/zshrc.d/ (e.g. aliases, completions, prompt segments). See
+# ~/.config/zsh/zshrc.d/README.md for the convention.
+for _dotfiles_zshrc_frag in "$HOME/.config/zsh/zshrc.d"/*.zsh(N); do
+	source "$_dotfiles_zshrc_frag"
+done
+unset _dotfiles_zshrc_frag
+
 # To customize the prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ -f ~/.p10k.zsh ]] && source ~/.p10k.zsh

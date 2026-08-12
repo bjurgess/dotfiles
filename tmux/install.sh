@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Sets up tmux: installs tmux/fzf if missing, stows the config into
-# ~/.config/tmux, symlinks tmux-sessionizer onto PATH, and installs tpm +
-# its plugins. Safe to re-run.
+# ~/.config/tmux and a PATH fragment into ~/.config/zsh/zshenv.d, symlinks
+# tmux-sessionizer onto PATH, and installs tpm + its plugins. Safe to
+# re-run.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -44,6 +45,12 @@ elif [ -e "$HOME/.config/tmux" ]; then
 	backup_if_conflict "$HOME/.config/tmux"
 fi
 
+# This package also carries a zsh/zshenv.d/tmux.zsh fragment (adds
+# ~/.local/bin to PATH), stowed alongside ~/.config/tmux under the same
+# default ~/.config target — see zsh/.config/zsh/zshenv.d/README.md.
+# ensure_zsh_fragment_dirs (lib/install-common.sh) keeps that shared dir
+# real so stow places individual files instead of folding the whole tree.
+ensure_zsh_fragment_dirs
 info "Symlinking tmux config into ~/.config/tmux via stow..."
 (cd "$DOTFILES_DIR" && stow --restow tmux)
 ok "tmux config stowed"
@@ -59,9 +66,13 @@ else
 	ok "Symlinked tmux-sessionizer -> ~/.local/bin"
 fi
 
+# zsh users get ~/.local/bin on PATH automatically via the zsh/zshenv.d/
+# tmux.zsh fragment stowed above, once zsh/install.sh has also been run and
+# ~/.zshenv is the one it stows. For any other shell (or if zsh isn't set up
+# via this repo yet), it needs to be added manually.
 case ":$PATH:" in
 *":$HOME/.local/bin:"*) ;;
-*) warn "~/.local/bin is not on your PATH — add 'export PATH=\"\$HOME/.local/bin:\$PATH\"' to your shell rc" ;;
+*) warn "~/.local/bin is not on your PATH — zsh gets this automatically after running zsh/install.sh; other shells need 'export PATH=\"\$HOME/.local/bin:\$PATH\"' added to their rc manually" ;;
 esac
 
 tpm_dir="$HOME/.tmux/plugins/tpm"
