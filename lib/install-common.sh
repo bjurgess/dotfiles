@@ -13,11 +13,34 @@ err()  { printf '%s[dotfiles]%s %s\n' "$c_red" "$c_reset" "$1" >&2; }
 
 command_exists() { command -v "$1" >/dev/null 2>&1; }
 
+# require_brew
+# Installs Homebrew via its official installer if missing, then makes sure
+# `brew` is on PATH for the rest of this script's execution (the installer
+# doesn't update PATH for an already-running shell).
 require_brew() {
+	if command_exists brew; then
+		return
+	fi
+
+	info "Homebrew not found. Installing..."
+	NONINTERACTIVE=1 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+	local brew_bin=""
+	if [ -x /opt/homebrew/bin/brew ]; then
+		brew_bin="/opt/homebrew/bin/brew" # Apple Silicon
+	elif [ -x /usr/local/bin/brew ]; then
+		brew_bin="/usr/local/bin/brew" # Intel
+	fi
+
+	if [ -n "$brew_bin" ]; then
+		eval "$("$brew_bin" shellenv)"
+	fi
+
 	if ! command_exists brew; then
-		err "Homebrew not found. Install it from https://brew.sh, then re-run this script."
+		err "Homebrew install did not complete. Install it manually from https://brew.sh, then re-run this script."
 		exit 1
 	fi
+	ok "Homebrew installed"
 }
 
 # backup_if_conflict <path>

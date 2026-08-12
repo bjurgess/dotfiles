@@ -7,13 +7,13 @@ every machine stays identical.
 ## Install (new machine)
 
 ```sh
-# 1. Install Homebrew if needed: https://brew.sh
-
-# 2. Clone this repo and run the installer
 git clone <this-repo> ~/dotfiles
 cd ~/dotfiles
 ./install.sh
 ```
+
+Homebrew doesn't need to be preinstalled — `install.sh` installs it
+automatically if it's missing.
 
 `install.sh` is safe to re-run any time — every step checks what's already in
 place before touching anything (installed packages are skipped, existing
@@ -22,12 +22,13 @@ overwrite gets backed up to `<path>.bak.<timestamp>` first, never deleted
 outright).
 
 It:
-1. Installs every CLI tool + cask declared in `Brewfile` (`brew bundle`).
-2. Installs `stow` if missing.
-3. Runs `tmux/install.sh`.
-4. Runs `ghostty/install.sh`.
-5. Runs `nvim/install.sh`.
-6. Runs `zsh/install.sh`.
+1. Installs Homebrew (`lib/install-common.sh`'s `require_brew`) if missing.
+2. Installs every CLI tool + cask declared in `Brewfile` (`brew bundle`).
+3. Installs `stow` if missing.
+4. Runs `tmux/install.sh`.
+5. Runs `ghostty/install.sh`.
+6. Runs `nvim/install.sh`.
+7. Runs `zsh/install.sh`.
 
 Each tool's script can also be run standalone (`./tmux/install.sh`,
 `./ghostty/install.sh`, `./nvim/install.sh`, `./zsh/install.sh`) if you only
